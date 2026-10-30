@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: central_os
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  # Django Backend
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    environment:
+      - DB_NAME=central_os
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - DB_HOST=db
+      - DB_PORT=5432
+      - SECRET_KEY=django-insecure-o9^icskqyvsw@l=*$c$-&n14#ys^(t4w@_iagwj($sd4f)vd!b
+      - DEBUG=True
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    command: >
+      bash -c "
+        python manage.py makemigrations accounts planning &&
+        python manage.py migrate &&
+        python manage.py runserver 0.0.0.0:8000
+      "
+
+  # React Frontend
+  frontend:
+    build:
+      context: ./central_os_frontend
+      dockerfile: ../Dockerfile.frontend
+    environment:
+      - REACT_APP_API_BASE=http://backend:8000/api
+    depends_on:
+      - backend
+    volumes:
+      - ./central_os_frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+
+volumes:
+  postgres_data:
