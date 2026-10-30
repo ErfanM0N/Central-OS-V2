@@ -2,14 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { 
   AppBar, Toolbar, Typography, Button, Container, Box, 
   CssBaseline, ThemeProvider, createTheme, Paper,
-  TextField, Link, Avatar, CircularProgress
+  TextField, Link, Avatar, CircularProgress, Grid,
+  IconButton, Tooltip, InputAdornment
 } from '@mui/material';
 import { 
   Dashboard as DashboardIcon, 
   AccountCircle, 
   Logout as LogoutIcon,
   CalendarMonth as CalendarIcon,
-  Flag as FlagIcon
+  Flag as FlagIcon,
+  Description as DescriptionIcon,
+  AttachFile as AttachFileIcon,
+  Add as AddIcon,
+  Delete as DeleteIcon,
+  InfoOutlined as InfoIcon
 } from '@mui/icons-material';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link as RouterLink } from 'react-router-dom';
 import axios from 'axios';
@@ -30,7 +36,7 @@ const Navbar: React.FC<NavbarProps> = ({ isAuthenticated, onLogout, userEmail })
     <Container maxWidth="lg">
       <Toolbar disableGutters>
         <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 'bold', color: 'primary.main' }}>
-          CENTRAL OS
+          CENTRAL OS (Tehran Time Base)
         </Typography>
         {isAuthenticated ? (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -238,7 +244,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>Life Planning Dashboard</Typography>
+        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>Life Planning Dashboard (Tehran Time: {new Date().toLocaleString('en-US', { timeZone: 'Asia/Tehran' })})</Typography>
         <Button variant="contained" startIcon={<CalendarIcon />}>
           Add Quarter
         </Button>
@@ -253,10 +259,10 @@ const Dashboard: React.FC<DashboardProps> = () => {
           {quarters.map((q) => (
             <Paper key={q.id} elevation={2} sx={{ p: 3, borderRadius: 2 }}>
               <Typography variant="h6" color="primary" gutterBottom>
-                {q.year} Q{q.quarter}
+                {q.year} Q{q.quarter} (Timezone: {q.timezone})
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Created: {new Date(q.created_at).toLocaleDateString()}
+                Created: {new Date(q.created_at).toLocaleString('en-US', { timeZone: q.timezone })}
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 {q.goals.length === 0 ? (
@@ -270,7 +276,28 @@ const Dashboard: React.FC<DashboardProps> = () => {
                       <Typography variant="body2" sx={{ mb: 1 }}>
                         {g.description || 'No description'}
                       </Typography>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      {g.link_files && g.link_files.length > 0 && (
+                        <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
+                          {g.link_files.map((file: string, idx: number) => (
+                            <Tooltip key={idx} title={file}>
+                              <IconButton size="small" color="primary" component="a" href={file} target="_blank">
+                                <AttachFileIcon />
+                              </IconButton>
+                            </Tooltip>
+                          ))}
+                        </Box>
+                      )}
+                      {g.other_details && Object.keys(g.other_details).length > 0 && (
+                        <Box sx={{ mt: 1 }}>
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <InfoIcon fontSize="small" /> Other Details:
+                          </Typography>
+                          <pre style={{ background: '#f5f5f5', padding: '8px', borderRadius: '4px', fontSize: '12px', marginTop: '4px' }}>
+                            {JSON.stringify(g.other_details, null, 2)}
+                          </pre>
+                        </Box>
+                      )}
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
                         <Typography variant="caption" color={g.is_completed ? 'success.main' : 'error.main'}>
                           {g.is_completed ? 'Completed' : 'Pending'}
                         </Typography>

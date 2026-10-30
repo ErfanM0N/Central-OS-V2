@@ -7,11 +7,17 @@ User = get_user_model()
 class GoalSerializer(serializers.ModelSerializer):
     class Meta:
         model = Goal
-        fields = ['id', 'title', 'description', 'is_completed', 'priority', 'created_at', 'updated_at']
+        fields = [
+            'id', 'title', 'description', 'link_files', 'other_details', 
+            'is_completed', 'priority', 'created_at', 'updated_at'
+        ]
 
 class QuarterSerializer(serializers.ModelSerializer):
     goals = GoalSerializer(many=True, read_only=True)
     
     class Meta:
         model = Quarter
-        fields = ['id', 'year', 'quarter', 'created_at', 'updated_at', 'goals']
+        fields = [
+            'id', 'year', 'quarter', 'timezone', 
+            'created_at', 'updated_at', 'goals'
+        ]

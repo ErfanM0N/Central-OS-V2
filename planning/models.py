@@ -17,17 +17,20 @@ class Quarter(models.Model):
     quarter = models.IntegerField(choices=QUARTER_CHOICES)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    timezone = models.CharField(max_length=50, default='Asia/Tehran')  # Base time
 
     class Meta:
         unique_together = ('user', 'year', 'quarter')
 
     def __str__(self):
-        return f"{self.user.email} - {self.year} Q{self.quarter}"
+        return f"{self.user.email} - {self.year} Q{self.quarter} ({self.timezone})"
 
 class Goal(models.Model):
     quarter = models.ForeignKey(Quarter, on_delete=models.CASCADE, related_name='goals')
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
+    link_files = models.JSONField(default=list, blank=True, null=True)  # Store file links/paths
+    other_details = models.JSONField(default=dict, blank=True, null=True)  # Flexible extra fields
     is_completed = models.BooleanField(default=False)
     priority = models.IntegerField(default=1)  # 1: High, 2: Medium, 3: Low
     created_at = models.DateTimeField(auto_now_add=True)
